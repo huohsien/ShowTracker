@@ -76,24 +76,19 @@
         self.pageControlUsed = NO;
     }];
 }
+
 - (void)loadShow:(NSInteger)index
 {
     // 1 - Find the show for the given index
     NSDictionary *show = nil;
-    NSInteger shows = 0;
-    NSInteger count = 0;
-    for (NSDictionary *item in self.jsonResponse) {
-        
-        if (index == count) {
-            show = item;
-            break;
-        }
-        
-        // 3 - Increment the shows counter
-        shows++;
-    }
+    
+    if (index < [self.jsonResponse count])
+        show = [self.jsonResponse objectAtIndex:index];
+    else
+        return;
     
     // 4 - Load the show information
+
     NSDictionary *showDict = show[@"show"];
     
     // 5 - Display the show title
@@ -147,6 +142,7 @@
     // 6 - Add to scroll view
     [self.showsScrollView addSubview:titleLabel];
 }
+
 - (void)scrollViewDidScroll:(UIScrollView *)sender
 {
     // Was the scrolling initiated via page control?
