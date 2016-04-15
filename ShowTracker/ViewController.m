@@ -27,9 +27,8 @@
     
     TraktAPIClient *client = [TraktAPIClient sharedClient];
     
-    [client getShowsForDate:[NSDate date] numberOfDays:1
-                    success:^(NSURLSessionDataTask *task, id responseObject) {
-        
+    [client getTrendingShowsWithSuccess:^(NSURLSessionDataTask *task, id responseObject) {
+                        
                         NSLog(@"Success -- %@", responseObject);
                         // Save response object
                         self.jsonResponse = responseObject;
@@ -50,6 +49,64 @@
                         
                         NSLog(@"Failure -- %@", error);
                     }];
+    
+}
+
+- (void)loadShow:(NSInteger)index
+{
+    // 1 - Find the show for the given index
+    NSDictionary *show = nil;
+    
+    if (index < [self.jsonResponse count])
+        show = [self.jsonResponse objectAtIndex:index];
+    else
+        return;
+    
+    // 4 - Load the show information
+    
+    NSDictionary *showDict = show[@"show"];
+    
+    // 5 - Display the show title
+    UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(index * CGRectGetWidth(self.showsScrollView.bounds) + 20, 40, CGRectGetWidth(self.showsScrollView.bounds) - 40, 40)];
+    titleLabel.text = showDict[@"title"];
+    titleLabel.backgroundColor = [UIColor clearColor];
+    titleLabel.textColor = [UIColor whiteColor];
+    titleLabel.font = [UIFont boldSystemFontOfSize:18];
+    titleLabel.textAlignment = NSTextAlignmentCenter;
+    [self addEpisodeLabelOfShow:show OnPageNumber:index];
+    // Add to scroll view
+    [self.showsScrollView addSubview:titleLabel];
+}
+
+- (void)addEpisodeLabelOfShow:(NSDictionary *)show OnPageNumber:(NSInteger)index{
+    // Create formatted airing date
+    if (index < [self.jsonResponse count])
+        show = [self.jsonResponse objectAtIndex:index];
+    else
+        return;
+    
+    
+    NSString *yearString = show[@"show"][@"year"];
+    
+    // Create label to display episode info
+    UILabel *episodeLabel = [[UILabel alloc] initWithFrame:CGRectMake(index * CGRectGetWidth(self.showsScrollView.bounds), 360, CGRectGetWidth(self.showsScrollView.bounds), 40)];
+    
+    episodeLabel.text = [NSString stringWithFormat:@"Year: %@\n", yearString];
+    episodeLabel.numberOfLines = 0;
+    episodeLabel.textAlignment = NSTextAlignmentCenter;
+    episodeLabel.textColor = [UIColor whiteColor];
+    episodeLabel.backgroundColor = [UIColor clearColor];
+    
+    CGSize size = [episodeLabel sizeThatFits:CGSizeMake(CGRectGetWidth(self.view.frame),
+                                                        CGRectGetHeight(self.view.frame) - CGRectGetMinY(episodeLabel.frame))];
+    CGRect frame = episodeLabel.frame;
+    frame.size.width = self.view.frame.size.width;
+    frame.size.height = size.height;
+    episodeLabel.frame = frame;
+    
+    [self.showsScrollView addSubview:episodeLabel];
+    
+    
 }
 
 #pragma mark - Actions
@@ -77,71 +134,7 @@
     }];
 }
 
-- (void)loadShow:(NSInteger)index
-{
-    // 1 - Find the show for the given index
-    NSDictionary *show = nil;
-    
-    if (index < [self.jsonResponse count])
-        show = [self.jsonResponse objectAtIndex:index];
-    else
-        return;
-    
-    // 4 - Load the show information
 
-    NSDictionary *showDict = show[@"show"];
-    
-    // 5 - Display the show title
-    UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(index * CGRectGetWidth(self.showsScrollView.bounds) + 20, 40, CGRectGetWidth(self.showsScrollView.bounds) - 40, 40)];
-    titleLabel.text = showDict[@"title"];
-    titleLabel.backgroundColor = [UIColor clearColor];
-    titleLabel.textColor = [UIColor whiteColor];
-    titleLabel.font = [UIFont boldSystemFontOfSize:18];
-    titleLabel.textAlignment = NSTextAlignmentCenter;
-    
-    // 5.1 - Create formatted airing date
-    
-    static NSDateFormatter *formatter = nil;
-    if (!formatter) {
-        formatter = [[NSDateFormatter alloc] init];
-        [formatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SSSZ"];
-
-    }
-    
-    
-    NSDate *showAired = [formatter dateFromString:(NSString *)show[@"first_aired"]];
-    formatter.dateFormat = @"yyyy-MM-dd HH:mm:ss";
-    [formatter setTimeZone:[NSTimeZone timeZoneWithName:@"Asia/Taipei"]];
-    NSString *showDate = [formatter stringFromDate:showAired];
-   
-    
-    NSDictionary *episodeDict = show[@"episode"];
-
-    // 5.2 - Create label to display episode info
-    UILabel *episodeLabel = [[UILabel alloc] initWithFrame:CGRectMake(index * CGRectGetWidth(self.showsScrollView.bounds),
-                                                                      360, CGRectGetWidth(self.showsScrollView.bounds), 40)];
-    NSString* episode  = [NSString stringWithFormat:@"%02dx%02d - \"%@\"",
-                          [[episodeDict valueForKey:@"season"] intValue],
-                          [[episodeDict valueForKey:@"number"] intValue],
-                          [episodeDict objectForKey:@"title"]];
-    episodeLabel.text = [NSString stringWithFormat:@"%@\n%@", episode, showDate];
-    episodeLabel.numberOfLines = 0;
-    episodeLabel.textAlignment = NSTextAlignmentCenter;
-    episodeLabel.textColor = [UIColor whiteColor];
-    episodeLabel.backgroundColor = [UIColor clearColor];
-    
-    CGSize size = [episodeLabel sizeThatFits:CGSizeMake(CGRectGetWidth(self.view.frame),
-                                                        CGRectGetHeight(self.view.frame) - CGRectGetMinY(episodeLabel.frame))];
-    CGRect frame = episodeLabel.frame;
-    frame.size.width = self.view.frame.size.width;
-    frame.size.height = size.height;
-    episodeLabel.frame = frame;
-    
-    [self.showsScrollView addSubview:episodeLabel];
-    
-    // 6 - Add to scroll view
-    [self.showsScrollView addSubview:titleLabel];
-}
 
 - (void)scrollViewDidScroll:(UIScrollView *)sender
 {

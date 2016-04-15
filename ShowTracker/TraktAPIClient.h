@@ -7,5 +7,6 @@ extern NSString * const kTraktBaseURLString;
 + (TraktAPIClient *) sharedClient;
 
 - (void)getShowsForDate:(NSDate *)date numberOfDays:(int)numberOfDays success:(void(^)(NSURLSessionDataTask *task, id responseObject))success failure:(void(^)(NSURLSessionDataTask *task, NSError *error))failure;
+- (void)getTrendingShowsWithSuccess:(void (^)(NSURLSessionDataTask *, id))success failure:(void (^)(NSURLSessionDataTask *, NSError *))failure;
 
 @end

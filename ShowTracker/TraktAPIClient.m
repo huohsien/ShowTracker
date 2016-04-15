@@ -38,11 +38,33 @@ NSString * const kTraktBaseURLString = @"https://api-v2launch.trakt.tv";
     [self.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-type"];
     [self.requestSerializer setValue:kTraktClientID forHTTPHeaderField:@"trakt-api-key"];
     [self.requestSerializer setValue:@"2" forHTTPHeaderField:@"trakt-api-version"];
-
+    
+    
     NSDateFormatter* formatter = [[NSDateFormatter alloc] init];
     formatter.dateFormat = @"yyyy-MM-dd";
     NSString* dateString = [formatter stringFromDate:date];
-    NSString* path = [NSString stringWithFormat:@"calendars/all/shows/new/%@/%d", dateString, numberOfDays];
+    NSString* path = [NSString stringWithFormat:@"calendars/all/shows/premieres/%@/%d", dateString, numberOfDays];
+    NSLog(@"path = %@", path);
+    [self GET:path parameters:nil success:^(NSURLSessionDataTask *task, id responseObject) {
+        if (success) {
+            success(task, responseObject);
+        }
+    }failure:^(NSURLSessionDataTask *task, NSError *error) {
+        if (failure) {
+            failure(task, error);
+        }
+    }];
+    
+}
+
+- (void)getTrendingShowsWithSuccess:(void (^)(NSURLSessionDataTask *, id))success failure:(void (^)(NSURLSessionDataTask *, NSError *))failure {
+    
+    [self.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-type"];
+    [self.requestSerializer setValue:kTraktClientID forHTTPHeaderField:@"trakt-api-key"];
+    [self.requestSerializer setValue:@"2" forHTTPHeaderField:@"trakt-api-version"];
+    
+   
+    NSString* path = [NSString stringWithFormat:@"shows/trending"];
     NSLog(@"path = %@", path);
     [self GET:path parameters:nil success:^(NSURLSessionDataTask *task, id responseObject) {
         if (success) {
